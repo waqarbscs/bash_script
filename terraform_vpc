@@ -1,0 +1,47 @@
+resource "aws_ec2" "demo-ec2"{
+    instance_type = "t3.micro"
+    ami = "ami-0ac73f33a1888c64a"
+    vpc_id = aws_vpc.breakout_vpc.vpc_id
+}
+
+//Creating vpc
+resource "aws_vpc" "breakout_vpc" {
+    cidr_block = "10.20.0.0/16"
+    enable_dns_hostnames = true
+    tags = {
+        Name = "breakout_vpc"
+    }
+}
+
+//creating igw against vpc
+resource "aws_internet_gateway" "breakout_vpc_igw" {
+    vpc_id = aws_vpc.breakout_vpc.id
+    tags = {
+      Name = "breakout_vpc_igw"
+    }
+}
+
+//creating subnet
+resource "aws_subnet" "breakout_subnet_pub" {
+    cidr_block = "10.20.0.0/24"
+    vpc_id = aws_vpc.breakout_vpc.id
+    tags = {
+      Name = "breakout_subnet_pub"
+    }
+}
+
+resource "aws_route_table" "breakout_route_subnet_pub" {
+    vpc_id = aws_vpc.breakout_vpc.id
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.breakout_vpc_igw.id
+    }
+    tags = {
+      Name = "breakout_route_subnet_pub"
+    }
+}
+
+//get
+output "vpc_id" {
+    value = aws_vpc.breakout_vpc.id
+}
